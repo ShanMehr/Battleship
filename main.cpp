@@ -1,0 +1,2375 @@
+// battleship.cpp
+// Ishan Meher, CISP 400
+// 11/22/2020
+
+#include<iostream>
+#include<string>
+#include<limits>
+#include<cctype>
+#include<ctime>
+#include<fstream> 
+
+
+using namespace std;
+
+class Date
+{
+	private:
+
+		int month; // Stores the current month
+		int day;  // Stores the current day
+		int year; // Stores the current year
+		string monthList[12] ={"January","February","March","April","May","June","July","August","September","October","November","December"}; // Used to convert numeric month to the name of the month
+		
+	public:
+
+		
+		Date(int month, int day,int year)
+		{
+			// Constructor for Date object
+
+			this->month=month; // sets pointer to this Date object's month to month parameter
+			this->day=day; // sets pointer to this Date object's day to day parameter
+			this->year=year; // sets pointer to this Date object's year to year parameter
+
+		}
+
+		// Specification A3 - System Date.
+		Date()
+		{
+			// Initializes member variables to store current day
+			time_t today = time(0);
+ 
+ 			tm *tdy = localtime(&today);
+
+   			this->month=1 + tdy->tm_mon; //sets pointer to this Date objects month and initializes it to hold the current month
+  			this->day=tdy->tm_mday;  //sets pointer to this Date objects day and initializes it to hold the current month	
+   			this->year=1900+ tdy->tm_year;  //sets pointer to this Date objects year and initializes it to hold the current year
+		}
+
+
+		Date(const Date& date)
+		{
+			this->month=date.month;
+			this->day=date.day;
+			this->year=date.year;
+		}	
+
+
+	private:
+
+		
+		void testingSetDate(int month, int day, int year)
+		{
+			// Tests wether the setDate method sets the Date object's member variables are correctly set
+			setDate(month,day,year);
+			if(month==this->month&&day==this->day&&year==this->year)
+			{
+				cout<<"Date member variables have been initialized\n";
+			}
+			else
+			{
+				cout<<"Date member variables have not been initialized\n";
+			}
+		}
+
+		Date* testDateContructor(int month,int day, int year)
+		{
+				// Tests wether the Constructor sets the Date object's member variables are correctly set
+				Date date(month, day, year);
+				Date* testDate=&date;
+
+				if(month==testDate->month&&day==testDate->day&&year==testDate->year)
+				{
+					cout<<"Date member variables have been initialized\n";
+					cout<<"Contructor successfully works\n";
+				}
+				
+				else
+				{
+					cout<<"Date member variables have not been initialized\n";
+					cout<<"Contructor failed\n";
+				}
+
+				return testDate;
+
+		}
+
+
+	public:
+
+
+    int getMonth()
+    {
+      return month;
+    }
+
+    int getDay()
+    {
+      return day;
+    }
+
+    int getYear()
+    {
+      return year;
+    }
+		
+		bool isValidDate(int month,int day,int year)
+		{
+			// Checks wether the month, day and year are valid
+			if(validMonth(month)&&validYear(year)&&validDay(month,day,isLeap(year)))
+			{
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+
+		}
+
+		Date& operator =(const Date& date)
+		{
+			this->month=date.month;
+			this->day=date.day;
+			this->year=date.year;
+			return *this;
+		} 
+
+		bool validMonth(int month)
+		{
+			// Checks if the month entered is a valid month
+			// return true if the month is between 1 and 12 inclusive
+			if(month>=1&&month<=12)
+			{
+				return true;
+			}
+
+			else
+			{
+				cout<<"Month input failed!\n";
+				return false;
+			}	
+		}
+
+		bool validDay(int month,int day,bool isLeap)
+		{
+			// Checks wether the day entered is a valid day based on the day
+			bool valid=true;
+
+			// Fails if the month is not a valid month, month is needed for day validity		
+
+
+			if(day>31||day<1)
+			{
+				// Its not possible to have negative days or more than 31 days in a month
+				cout<<"Day input failed!\n";
+				cout<<"Months usually have days ranging from 1 and 31 days (inclusive)\n";
+				return false;
+			}
+
+			else
+			{
+
+				if((month==9||month==11)||(month%2==0&&(month!=10||month!=12||month!=8||month!=2)))
+				{
+					// Tests to see if months that have 30 days do not have more than 30 days
+					// Most even months have 30 days have 30 days except December August and February
+					// The odd months September and November have 30 days
+					if(day>=31||day<1)
+					{
+						// Checks if the day entered of the checked months don't have more than 30 days or less than 1
+						cout<<"Day input failed!\n";
+						cout<<"Most of the even months have 30 days, Not including the months of February and August\n";
+						cout<<"The odd months of September and November have 30 days\n";
+						return false;
+					}
+				}
+				if(month==2)
+				{
+					if(isLeap&&day>=30)
+					{
+						// There are 29 days in the month of february during leap year
+						cout<<"Day input failed!\n";
+						cout<<"The month of February has only dates between 1-29 (inclusive) during leap year\n";
+						return false;
+
+					}
+
+					else if(!isLeap&&day>=29)
+					{
+						// ELse if its a Common year then it will have 28 days
+						cout<<"Day input failed!\n";
+						cout<<"The month of February has only dates between 1-28 (inclusive) during a common year\n";
+						return false;
+					}
+				}
+
+				else
+				{				
+					
+					// Runs if the month is odd and not September or November then but can be even only if December, October or August
+					// These months have 31 days
+					
+				}
+
+			}			
+
+			return valid;
+
+			
+		}
+
+		bool isLeap(int year)
+		{
+			// Checks wether a year is a leap year or not		
+
+			if(year%4!=0)
+			{
+				// Common year if not divisible by 3
+				return false;
+			}
+
+			else if(year%100!=0)
+			{
+				// Common year if divisible by 100
+				
+				return true;
+			}
+
+			else if(year%400!=0)
+			{
+				// Commmon year if not divisible by 400
+				
+				return false;
+			}
+
+			else
+			{
+				// If it is not a common year then the year is a leap year
+				
+				return true;
+
+			}
+			
+			
+
+		}
+
+
+		bool validYear(int year)
+		{
+			if(year>=0&&year<=3000)
+			{
+				// Checks if a reasonable year is entered				
+				return true;				
+			}
+
+			else
+			{
+					cout<<"Year input failed!\n";
+					cout<<"The year entered is not a reasonable year entry try a year larger than 0 and less than 3000\n";
+					return false;
+			}
+		}
+
+		string getDate()
+		{
+			// Prints the date
+			if(isValidDate(month,day,year))
+			{
+				// The date will only be printed if the date is a valid date
+
+				string monthString= monthList[month-1];
+				
+				
+				return (monthList[month-1]+" "+to_string(day)+", "+to_string(year));
+
+			}
+			else
+			{
+				return "Date is not valid!";
+			}	
+		}
+
+		string getNumericDate()
+		{
+			// Prints the date
+			if(isValidDate(month,day,year))
+			{
+				// The date will only be printed if the date is a valid date
+
+				
+				return (to_string(month)+"/"+to_string(day)+"/"+to_string(year));
+
+			}
+			else
+			{
+				return "Date is not valid!";
+
+			}	
+
+		}
+
+		void setDate(int month, int day, int year )
+		{
+			// Utility dunctio used to set a date by changing instance variables 
+			
+			this->month=month; 
+			this->day=day;
+			this->year=year;
+
+
+		}
+
+        friend ostream& operator << (ostream &output,Date& date)
+	{
+		// Prints the data of the Date Class
+    	output<<date.getDate()<<'\n'; 
+    	return output;
+	}
+
+		
+		void dateUnitTest()
+		{
+			//Tests the cases in which dates will work and cases where dates will fail
+
+			
+			// Printing Today's Date
+			Date testDate;
+			cout<<"Displaying Today's date in Letter form\n";
+			cout<<testDate.getDate();
+			cout<<"Entering Today's date in numeric form\n";
+			cout<<"Date: "+testDate.getNumericDate()<<'\n';;
+			cout<<"\n";
+			
+			// Testing Constructor with multiple parameters and checking date entered
+			cout<<"Testing wether the multiple parameter constructor works\n";
+			
+			cout<<"Displaying Today's date in Letter form\n";
+			cout<<"Printing Numeric Date:\n";	
+			cout<<"Expected: 12/15/2015\n";
+			cout<<"Date: "+testDate.getNumericDate()<<'\n';;
+			cout<<"Printing Letter Date\n";
+			cout<<"Expected "<<"December 15, 2015\n";	
+			cout<<"Date: "+testDate.getNumericDate()<<'\n';
+			cout<<"\n";
+			cout<<"\n";;
+
+
+			// Fails all the tests for a valid date
+			cout<<"Testing a Day that fails for any date test \n";
+			testDate.testingSetDate(12000,15000,2020);
+			cout<<"Expected: Date is not valid\n";
+			cout<<"Date: "+testDate.getNumericDate()<<'\n';
+			cout<<"Date: "+testDate.getNumericDate()<<'\n';;
+			cout<<"\n";
+		
+
+			// A date can't have a month that is more than 12
+			testDate.testingSetDate(13,29,2000);
+			cout<<"Testing a month that is not valid!\n";
+			cout<<"Testing a month that is greater than 12\n";			
+			cout<<"Expected: Date is not valid\n";
+			cout<<"Date: "+testDate.getNumericDate()<<'\n';
+			cout<<"Date: "+testDate.getNumericDate()<<'\n';;
+			cout<<"\n";
+
+
+			// A month can't be less than 1
+			cout<<"Testing a month that will fail! \n";
+			cout<<"Testing a month smaller than 1\n";	
+			testDate.testingSetDate(0,12,2020);
+			cout<<"Expected: Date is not valid\n";
+			cout<<"Date: "+testDate.getNumericDate()<<'\n';
+			cout<<"Date: "+testDate.getNumericDate()<<'\n';;
+			cout<<"\n";
+
+
+			// Testing a date to have a month that works
+			cout<<"Testing a month that works\n";
+			testDate.testingSetDate(12,15,2015);
+			cout<<"Printing Numeric Date:\n";	
+			cout<<"Expected: 12/15/2015\n";
+			cout<<"Date: "+testDate.getNumericDate()<<'\n';;
+			cout<<"Printing Letter Date\n";
+			cout<<"Expected "<<"December 15, 2015\n";	
+			cout<<"Date: "+testDate.getNumericDate()<<'\n';
+			cout<<"\n";
+			cout<<"\n";
+
+
+			cout<<"Testing a year smaller than expected that fails\n";
+			testDate.testingSetDate(12,15,1800);
+			cout<<"Printing Numeric Date:\n";
+			cout<<"Date: "+testDate.getNumericDate()<<'\n';;
+			cout<<"Printing Letter Date\n";
+			cout<<"Date: "+testDate.getNumericDate()<<'\n';	
+			cout<<"\n";
+			cout<<"\n";
+
+			cout<<"Testing a year that works\n";
+			testDate.testingSetDate(12,15,2020);
+			cout<<"Printing Numeric Date:\n";
+			cout<<"Expected: 12/15/2002\n";
+			cout<<"Date: "+testDate.getNumericDate()<<'\n';;
+			cout<<"Printing Letter Date:\n";
+			cout<<"Expected: December 15, 2020\n";
+			cout<<"Date: "+testDate.getNumericDate()<<'\n';	
+			cout<<"\n";
+			cout<<"\n";
+
+			// A month can't have more than 31 days
+			cout<<"Testing a day that is greater than 31\n";
+			testDate.testingSetDate(2,32,2000);
+			cout<<"Expected: Date is not valid\n";
+			cout<<"Date: "+testDate.getNumericDate()<<'\n';	
+			cout<<"\n";
+			cout<<"\n";
+
+			// A month can't less than 1 day
+			cout<<"Testing a day that is less than 1\n";
+			testDate.testingSetDate(1,0,2000);
+			cout<<"Expected: Date is not valid\n";
+			cout<<"Date: "+testDate.getNumericDate()<<'\n';	
+			cout<<"\n";
+			cout<<"\n";
+
+			// The month of April has 30 days 
+			cout<<"Testing a Day that fails for a 30 day month\n";
+			testDate.testingSetDate(4,31,2020);
+			cout<<"Expected: Date is not valid\n";
+			cout<<"Date: "+testDate.getNumericDate()<<'\n';	
+			cout<<"\n";
+			cout<<"\n";
+
+
+			// The month of april has 30 days
+			cout<<"Testing a Day that passes for a 30 day month \n";
+			testDate.testingSetDate(4,30,2020);	
+			cout<<"Printing Letter Date:\n";
+			cout<<"Expected: 4/30/2020\n";	
+			cout<<"Date: "+testDate.getNumericDate()<<'\n';;	
+			cout<<"Printing Letter Date:\n";
+			cout<<"Expected: April 30, 2020\n";
+			cout<<"Date: "+testDate.getNumericDate()<<'\n';
+
+			cout<<"\n";
+			cout<<"\n";
+
+			// The Month of February has 29 days on leap year
+			cout<<"Testing a day in february that fails when it is leap year \n";
+			testDate.testingSetDate(2,30,2022);
+			cout<<"Expected: Date is not valid\n";
+			cout<<"Date: "+testDate.getNumericDate()<<'\n';	
+			cout<<"\n";
+			cout<<"\n";
+
+
+			cout<<"Testing a day in february that passes when it is leap year \n";
+			testDate.testingSetDate(2,29,2000);
+			cout<<"Printing Numeric Date\n";
+			cout<<"Expected: 2/29/2000\n";
+			cout<<"Printing Letter Date\n";
+			cout<<"Expected: February 29, 2000\n";
+			cout<<"Date: "+testDate.getNumericDate()<<'\n';	
+			cout<<"\n";
+			cout<<"\n";
+
+			// The month of February has 28 days in a Common year
+			cout<<"Testing a day in february that fails when it is not a leap year \n";
+			testDate.testingSetDate(2,29,2001);
+			cout<<"Expected: Date is not valid\n";
+			cout<<"Date: "+testDate.getNumericDate()<<'\n';	
+			cout<<"\n";
+			cout<<"\n";
+
+			cout<<"Testing a day in february that passes when it is not leap year \n";
+			testDate.testingSetDate(2,28,2001);
+			cout<<"Printing Numeric Date\n";
+			cout<<"Expected: 2/28/2001\n";
+			cout<<"Date: "+testDate.getNumericDate()<<'\n';;
+			cout<<"Printing Letter Date\n";
+			cout<<"Expected: February 28, 2001\n";
+			cout<<"Date: "+testDate.getNumericDate()<<'\n';	
+			cout<<"\n";
+			
+		
+
+	}
+
+};
+
+template <class A>
+class Vector
+{
+	// The template class Vector creates an array that is able to store any data type 
+	public:
+
+		int length=0;
+		A* array;
+
+	public:
+		
+		Vector(int size)
+		{	
+			// Defines an Vector Object that accepts a length
+			// Allocates space on the heap to store array
+			if(length>=0)
+			{
+				// Makes sure the length is at least 0
+				this->length=size;
+				
+			}			
+			array= new A[length];
+		}
+
+
+        Vector(Vector& vector)
+		{	
+            // Assign one Vector to another
+			delete this->array;
+            this->array=nullptr;
+            this->array=vector.array;
+		}
+
+
+		Vector()
+		{
+			// Creates an Vector object
+			// Allocates space on the heap to store array
+			this->length=0;
+			array=new A[length];
+
+		}
+
+  void removeLast()
+  {
+    remove(size()-1);
+  }
+		
+
+	private:
+
+		void resizeVector()
+		{
+			// Resiszes the array by one
+
+			A* tempVector= new A[length+1]; // The tempVector stores all the data of array and has one more element
+
+			for(int position=0; position < length; position++)
+			{
+				// Loops through each position of the array and stores copies the element at each position into the tempVector
+				tempVector[position]= array[position];
+			}
+
+			// Frees the memory used by the smaller array
+			// The gradeList is set to point to the tempVector memory location
+			delete[] array; 
+			array=tempVector;	
+			tempVector=nullptr;
+		}
+
+	public:
+
+		void set(int index, A element)
+		{
+			// Changes the data stored at the requested index
+			
+				if(isValidIndex(index))
+				{
+					array[index]=element;
+				}		
+			
+		}
+
+    Vector& operator =(const Vector& vector)
+		{
+			delete this->array;
+      this->array=vector.array;
+			return *this;
+		} 
+
+		void clear()
+		{
+			// clears the contents of the arrray
+			delete[] array;
+			array=nullptr;
+			length=0;
+			array= new A[length]; 
+		}
+
+		int size()
+		{
+			// Returns the size of the array
+			return length;
+      
+		}
+
+	
+		void add(A element)
+		{
+			// Adds a new element to the end of the array
+
+			// Increases the size of the array by one
+			resizeVector();
+						
+			array[length]=element;
+			length++;		
+			
+		}
+
+		bool isValidIndex(const int index)
+		{
+			// Checks if the index entered is within the bounds of the array
+			return (index>=0&&index<length);
+		}
+
+		
+
+		A get(const int index)
+		{
+			// Gets the data stored at the requested index
+			// Returns the last index of the array if the requested index is invalid
+			if(isValidIndex(index))
+			{	
+				return array[index];
+			}
+			else
+			{
+				// If the entered index is not valid returns value of last index
+				return (array[length-1]);
+			}
+		}
+
+		void printItem(int index)
+		{	
+				// Prints the item at the requested index
+				cout<<array[index];
+			
+			
+		}
+
+		void printContents()
+		{
+			// Prints the the entire array
+			for(int index=0;index>size();++index)
+			{
+				printItem(index);
+			}
+		}
+
+		void remove(const int index)
+		{
+			// Removes an alement at any index of the array
+			if(isValidIndex(index))
+			{
+				// If the index is a valid index then remove the element located at the position
+
+
+				// Defines a temporary array allocated on the heap
+				// The int copyPosition variable increases with the loop unless the position that is to be removed is reached
+				// By not increasing int copyPosition it will make sure that one less item will be copied;
+				A* tempVector = new A[length-1];
+				int copyPosition=0;
+				for(int position=0;position<length;position++)
+				{
+
+					if(!(position==index))
+					{
+						tempVector[copyPosition]=array[position];
+						copyPosition++;
+						
+
+					}
+					
+				}
+				delete[] array;
+				length--;
+				array=tempVector;
+				tempVector=nullptr;
+			}
+			
+		}
+		
+		void VectorUnitTest()
+		{
+			// Tests various functions of the Vector Class
+
+			Vector<string> array;
+			cout<<"Printing Initial Size:\n"<<array.size()<<'\n';
+			cout<<"Adding an element:\n";
+			array.add("Ishan Meher");
+			cout<<"Printing Added element\n"<<array.get(0)<<'\n';
+			
+
+			cout<<"Adding a few Elements and printing these elements"<<'\n';
+			array.add("Professor Fowler");
+			cout<<"Printing the newly added element\n";
+			cout<<array.get(1)<<'\n';
+			array.add("Knuth");
+			array.add("Warshall");
+			array.add("Kruskal");
+
+			cout<<"Printing All the elements in the array"<<'\n';
+			for(int i=0;i<array.size();i++)
+			{
+				cout<<array.get(i)<<'\n';
+
+			}
+			cout<<'\n';
+
+			cout<<"Removing last element(Kruskal is gone)\n";
+			array.removeLast();
+
+			for(int i=0;i<array.size();i++)
+			{
+				cout<<array.get(i)<<'\n';
+			}
+
+			array.remove(3);
+
+			cout<<'\n';
+			cout<<"Removing Warshall at index 2\n";			
+			for(int i=0;i<array.size();i++)
+			{
+				cout<<array.get(i)<<'\n';
+			}
+
+			cout<<"Removing all elements"<<'\n';
+			array.clear();
+			
+			cout<<"Adding element to cleared array\n";
+			array.add("Ishan");
+			cout<<array.get(0)<<'\n';
+			cout<<array.size()<<'\n';
+			cout<<"Changing the value of an index\n";
+			array.set(0,"Professor Fowler");
+			cout<<array.get(0)<<'\n';
+			cout<<'\n';
+		}
+		
+		~Vector()
+		{
+			delete[] array;
+			array=nullptr;
+			this->length=0;
+		}	
+
+};
+
+struct Position
+{
+    int xCoord;
+    int yCoord;
+    string orientation;
+    bool isHit;
+	   
+    public:
+
+    Position(int xCoord,int yCoord)
+    {
+        this->xCoord=xCoord;
+        this->yCoord=yCoord;
+    }
+    
+
+    Position()
+    {
+        // Default Constuctor
+        this->xCoord=0;
+        this->yCoord=0;
+    }
+
+   
+		// Specification C4 - Overload «
+    friend ostream& operator << (ostream& output, Position& position)
+    {
+        output<<"X-Coordinate: "<<position.xCoord<<'\n';
+        output<<"Y-Coordinate: "<<position.yCoord<<'\n';
+        output<<"Orientation: "<<position.orientation<<'\n';
+        return output;
+
+    }
+
+
+    //Specification B4 - Overload »
+    friend istream& operator >> (istream& input, Position& position)
+    {
+      bool done;
+        cout<<"Enter X-Coordinate:(A-J)\n";
+        do
+        {
+          input>>position.xCoord;
+          if(!cin.fail())
+          {
+             cout<<"Enter Y-Coordinate:(0-9)\n";
+             input>>position.yCoord;
+              if(cin.fail())
+              {
+                cin.clear();
+					      cin.ignore(numeric_limits<streamsize>::max(), '\n');
+              }
+              else
+              {
+                done=true;
+              }
+              
+
+          }
+          else
+          {
+            cin.clear();
+					  cin.ignore(numeric_limits<streamsize>::max(), '\n');
+          }
+
+        }
+        while(!done);
+
+        return input;
+
+    }
+
+ 
+
+    void setCoordinates(const int xCoord, const int yCoord) 
+    {
+        this->xCoord=xCoord;
+        this->yCoord=yCoord;
+    }
+
+    void PositionsUnitTest()
+    {
+			auto printPassed = [](bool value) 
+    	{ 
+      	if(value)
+				{
+					return "Passed";
+				}
+				else
+				{
+					return "Failed";
+				}
+			
+   		}; 
+				cout<<"+++++++++++++++++++++++\n";
+        cout<<"Positions Unit Test\n";				
+				cout<<"The Positions Class Stores The coordinates an Object is located at\n";
+				cout<<"Testing the Positions Constructor\n";
+				Position coordinate(4,5);
+				cout<<printPassed(coordinate.xCoord==4&&coordinate.yCoord==5)<<'\n';
+      
+				cout<<"Testing the Setter Method\n";
+				coordinate.setCoordinates(12,13);
+				cout<<printPassed(coordinate.xCoord==12&&coordinate.yCoord==13)<<'\n';
+				cout<<"+++++++++++++++++++++++\n";
+				
+    }
+};
+
+// Specification C1 - OOP
+class Ship
+{
+  public:
+  string shipType;
+  int shipSize;
+  Vector<Position*>* positions;
+  string shipCode;
+  bool isDown;
+  int health;
+	
+
+  Ship(string shipType,const int shipSize,string code)
+  {
+    this->shipType=shipType;
+    this->shipSize=shipSize;
+    this->health=shipSize;
+    positions= new Vector<Position*>(shipSize);
+    this->shipCode=code;
+  }
+
+  Ship()
+  {
+      // Default Constrcutor;
+  }
+
+  ~Ship()
+  {
+      positions=nullptr;
+      delete[] positions;
+  }
+  
+    friend ostream& operator << (ostream& output, Ship& ship)
+    {
+        output<<"Ship Type: "<<ship.shipType<<'\n';
+        output<<"Ship Size: "<<ship.shipSize<<'\n';
+        output<<"Ship Code: "<<ship.shipCode<<'\n';
+				output<<"Printing Coordinate\n"<<'\n';
+        for(int index=0;index<ship.shipSize;index++)
+        {   
+            // Prints all the positons the ship is located at
+            output<<"Position at "<<index<<":"<<'\n';
+            output<<(*ship.positions->get(index))<<'\n';
+        }
+      return output;
+    }
+
+		void setCoordinateAtPosition(int index=0,int xCoord=0,int yCoord=0)
+		{	
+			if(index<shipSize&&index>=0)
+			{
+				Position* position= new Position(xCoord,yCoord);
+				this->positions->set(index,position);
+
+			}
+			else
+			{
+				cout<<"Error:Position Cannot Be Added\n";
+			}
+			
+		}
+
+		void shipUnitTest()
+		{
+
+			auto printPassed = [](bool value) 
+    	{ 
+      	if(value)
+				{
+					return "Passed";
+				}
+				else
+				{
+					return "Failed";
+				}
+			
+   		};
+			cout<<"+++++++++++++++++++++++\n";
+			cout<<"Ship UnitTest\n";
+			cout<<"Testing the Constructor\n";
+			Ship ship("Star Destroyer",15,"SD");
+			cout<< ship<<'\n';
+
+			ship.setCoordinateAtPosition(1,1,2);
+			cout<<"Testing the Position array's changing of coordinates\n";
+			cout<<"Position 1 is changed (Must Pass): "<<printPassed( ship.positions->get(1)->xCoord ==1&&ship.positions->get(1)->yCoord==2 )<<'\n';
+			cout<<"+++++++++++++++++++++++\n";
+
+     
+
+			ship.setCoordinateAtPosition(24,1,2);
+			cout<<"Position 24 is changed (Must Fail): "<<printPassed( ship.positions->get(24)->xCoord ==1&&ship.positions->get(24)->yCoord==2 )<<'\n';
+			cout<<"+++++++++++++++++++++++\n";
+
+		}
+
+};
+// Specification A3 - Child Classes
+class Carrier : public Ship
+{
+    public:
+    Carrier()
+    {
+        this->shipType="Carrier";
+        this->shipSize=5;
+        this->shipCode="C5";
+        this->positions= new Vector<Position*>(5);
+        this->health=shipSize;
+    }
+		~Carrier()
+		{
+      positions=nullptr;
+      delete[] positions;;
+		}
+
+		void carrierShipUnitTest()
+		{
+
+			auto printPassed = [](bool value) 
+    	{ 
+      	if(value)
+				{
+					return "Passed";
+				}
+				else
+				{
+					return "Failed";
+				}
+			
+   		};
+			cout<<"+++++++++++++++++++++++\n";
+			cout<<"Carrier Unit Test\n";
+			cout<<"Testing the Constructor\n";
+      cout<<"Using a Class stored on the heap\n";
+			Ship* ship=new Carrier();
+			cout<<*ship<<'\n';
+
+			ship->setCoordinateAtPosition(1,1,2);
+			cout<<"Testing the Position array's changing of coordinates\n";
+			cout<<"Position 1 is changed (Must Pass): "<<printPassed(ship->positions->get(1)->xCoord==1&&ship->positions->get(1)->yCoord==2)<<'\n';
+			cout<<"+++++++++++++++++++++++\n";
+
+
+			ship->setCoordinateAtPosition(24,1,2);
+			cout<<"Testing to see if it fails when a bad positions is entered\n";
+			cout<<"Position 24 is changed (Must Fail): "<<printPassed(ship->positions->get(24)->xCoord==1&&ship->positions->get(24)->yCoord==2)<<'\n';
+			cout<<"+++++++++++++++++++++++\n";
+
+      delete ship;
+
+		}
+
+
+};
+
+class BattleShip : public Ship
+{
+    
+    public:
+    BattleShip()
+    {
+        this->shipType="BattleShip";
+        this->shipSize=4;
+        this->shipCode="B4";
+        this->positions=new Vector<Position*>(4);
+        this->health=shipSize;
+    }
+
+    void battleShipUnitTest()
+		{
+
+			auto printPassed = [](bool value) 
+    	{ 
+      	if(value)
+				{
+					return "Passed";
+				}
+				else
+				{
+					return "Failed";
+				}
+			
+   		};
+			cout<<"+++++++++++++++++++++++\n";
+			cout<<"BattleShip Unit Test\n";
+			cout<<"Testing the Constructor\n";
+      cout<<"Using a Ship stored on the heap with a pointer to a BattleShip Object\n";
+			Ship* ship=new BattleShip();
+			cout<<*ship<<'\n';
+
+				ship->setCoordinateAtPosition(1,1,2);
+			cout<<"Testing the Position array's changing of coordinates\n";
+			cout<<"Position 1 is changed (Must Pass): "<<printPassed(ship->positions->get(1)->xCoord==1&&ship->positions->get(1)->yCoord==2)<<'\n';
+			cout<<"+++++++++++++++++++++++\n";
+
+
+			ship->setCoordinateAtPosition(24,1,2);
+			cout<<"Testing to see if it fails when a bad positions is entered\n";
+			cout<<"Position 24 is changed (Must Fail): "<<printPassed(ship->positions->get(24)->xCoord==1&&ship->positions->get(24)->yCoord==2)<<'\n';
+			cout<<"+++++++++++++++++++++++\n";
+
+      delete ship;
+
+      delete ship;
+
+		}
+
+		~BattleShip()
+		{
+			positions=nullptr;
+      delete[] positions;
+		}
+
+};
+
+class Cruiser : public Ship
+{
+    
+    public:
+    Cruiser()
+    {
+       
+        this->shipType="Cruiser";
+        this->shipSize=3;
+        this->shipCode="C3";
+        this->positions=new Vector<Position*>(3);
+        this->health=shipSize;
+    }
+
+    void cruiserShipUnitTest()
+		{
+
+			auto printPassed = [](bool value) 
+    	{ 
+      	if(value)
+				{
+					return "Passed";
+				}
+				else
+				{
+					return "Failed";
+				}
+			
+   		};
+			cout<<"+++++++++++++++++++++++\n";
+			cout<<"Cruiser Unit Test\n";
+			cout<<"Testing the Constructor\n";
+      cout<<"Using a Ship stored on the heap with a pointer to a Cruiser Object\n";
+			Ship* ship=new Cruiser();
+			cout<<*ship<<'\n';
+
+				ship->setCoordinateAtPosition(1,1,2);
+			cout<<"Testing the Position array's changing of coordinates\n";
+			cout<<"Position 1 is changed (Must Pass): "<<printPassed(ship->positions->get(1)->xCoord==1&&ship->positions->get(1)->yCoord==2)<<'\n';
+			cout<<"+++++++++++++++++++++++\n";
+
+
+			ship->setCoordinateAtPosition(24,1,2);
+			cout<<"Testing to see if it fails when a bad positions is entered\n";
+			cout<<"Position 24 is changed (Must Fail): "<<printPassed(ship->positions->get(24)->xCoord==1&&ship->positions->get(24)->yCoord==2)<<'\n';
+			cout<<"+++++++++++++++++++++++\n";
+
+      delete ship;
+
+      delete ship;
+
+		}
+
+		~Cruiser()
+		{
+      positions=nullptr;
+      delete[] positions;
+		}
+
+};
+
+class Submarine : public Ship
+{	
+    public:	
+    Submarine()
+    {
+        this->shipType="Submarine";
+        this->shipSize=3;
+        this->shipCode="S3";
+        this->positions=new Vector<Position*>(3);
+        this->health=shipSize;
+    }
+
+    void submarineUnitTest()
+		{
+
+			auto printPassed = [](bool value) 
+    	{ 
+      	if(value)
+				{
+					return "Passed";
+				}
+				else
+				{
+					return "Failed";
+				}
+			
+   		};
+
+			cout<<"+++++++++++++++++++++++\n";
+			cout<<"Submarine Unit Test\n";
+			cout<<"Testing the Constructor\n";
+      cout<<"Using a Ship stored on the heap with a pointer to a Submarine Object\n";
+			Ship* ship=new Submarine();
+			cout<<*ship<<'\n';
+
+				ship->setCoordinateAtPosition(1,1,2);
+			cout<<"Testing the Position array's changing of coordinates\n";
+			cout<<"Position 1 is changed (Must Pass): "<<printPassed(ship->positions->get(1)->xCoord==1&&ship->positions->get(1)->yCoord==2)<<'\n';
+			cout<<"+++++++++++++++++++++++\n";
+
+
+			ship->setCoordinateAtPosition(24,1,2);
+			cout<<"Testing to see if it fails when a bad positions is entered\n";
+			cout<<"Position 24 is changed (Must Fail): "<<printPassed(ship->positions->get(24)->xCoord==1&&ship->positions->get(24)->yCoord==2)<<'\n';
+			cout<<"+++++++++++++++++++++++\n";
+
+      delete ship;
+
+      delete ship;
+
+		}
+
+
+		~Submarine()
+		{
+			positions=nullptr;
+      delete[] positions;
+		}
+};
+
+class Destroyer : public Ship
+{
+  public:
+  	Destroyer()
+  	{
+      ;
+      this->shipType="Destroyer";
+        this->shipSize=2;
+        this->shipCode="D2";
+        this->positions=new Vector<Position*>(2);
+        this->health=shipSize;
+  	}
+
+    void destroyerUnitTest()
+		{
+
+			auto printPassed = [](bool value) 
+    	{ 
+      	if(value)
+				{
+					return "Passed";
+				}
+				else
+				{
+					return "Failed";
+				}
+			
+   		};
+      
+			cout<<"+++++++++++++++++++++++\n";
+			cout<<"Destroyer Unit Test\n";
+			cout<<"Testing the Constructor\n";
+      cout<<"Using a Ship stored on the heap with a pointer to a Destroyer Object\n";
+			Ship* ship=new Destroyer();
+			cout<<*ship<<'\n';
+
+				ship->setCoordinateAtPosition(1,1,2);
+			cout<<"Testing the Position array's changing of coordinates\n";
+			cout<<"Position 1 is changed (Must Pass): "<<printPassed(ship->positions->get(1)->xCoord==1&&ship->positions->get(1)->yCoord==2)<<'\n';
+			cout<<"+++++++++++++++++++++++\n";
+
+
+			ship->setCoordinateAtPosition(24,1,2);
+			cout<<"Testing to see if it fails when a bad positions is entered\n";
+			cout<<"Position 24 is changed (Must Fail): "<<printPassed(ship->positions->get(24)->xCoord==1&&ship->positions->get(24)->yCoord==2)<<'\n';
+			cout<<"+++++++++++++++++++++++\n";
+
+      delete ship;
+      delete ship;
+
+		}
+		~Destroyer()
+		{
+      positions=nullptr;
+      delete[] positions;
+
+		}
+};
+
+
+class Grid
+{	
+	public:
+	int gridSize;
+	string** grid;
+	
+	Grid(const int gridSize)
+	{
+		this->gridSize=gridSize;
+		this->grid=make2DArray(gridSize);
+    loadGrid();
+	}
+
+	Grid()
+	{
+		this->gridSize=10;
+		this->grid=make2DArray(10);
+    loadGrid();
+    
+	} 
+
+	~Grid()
+	{
+    /*
+		for(int index=0;index<gridSize;index++)
+		{
+      // Delete all the columns of the array
+      grid[index]=nullptr;
+      delete grid[index]; 		
+      
+		}
+    */
+    // Delete array
+    grid=nullptr;
+    delete[] grid;
+
+  
+		
+	}
+
+  friend ostream& operator <<(ostream& output, Grid& grid)
+  {
+    
+
+    output<<"  A ";
+    output<<"  B  ";
+    output<<" C  ";
+    output<<" D  ";
+    output<<" E  ";
+    output<<" F  ";
+    output<<" G  ";
+    output<<" H  ";
+    output<<" I  ";
+    output<<" J ";
+    cout<<'\n';
+    for(int i=0;i<grid.gridSize;i++)
+    {
+      output<<i;
+      for(int j=0;j<grid.gridSize;j++)
+      {
+        output<<grid.grid[i][j];
+      }
+      output<<'\n';
+    }
+    
+    return output;
+  }
+
+  void gridUnitTest()
+  { 
+    cout<<"Grid Unit Test\n";
+    Grid grid(2);
+    cout<<"Testing the loading of the parameterized Constructor\n";
+    cout<<"Printing the Empty grid (The result of the constructor)\n"<<'\n';
+    cout<<"Printing a 2x2 grid\n";
+    cout<<grid;
+   
+
+    cout<<"Testing the Default constructor"<<'\n';
+    Grid defaultGrid;
+    cout<<"Also testing the addition of an string to the grid\n";
+    for(int i=0;i<defaultGrid.gridSize;i++)
+    {
+      for(int j=0;j<defaultGrid.gridSize;j++)
+      {
+        string row= to_string(i);
+        string col= to_string(j+1);
+        
+        defaultGrid.addToPosition(i,j,row+col);
+      }
+    }
+    cout<<defaultGrid<<'\n';
+
+  }
+
+   
+  void printGrid()
+  {
+    
+    for(int i=0;i<gridSize;i++)
+    {
+      for(int j=0;j<gridSize;j++)
+      {
+        cout<<grid[i][j];
+      }
+      cout<<'\n';
+    }
+  }
+
+  void addToPosition(int row,int column,string text)
+  {
+    if(row<gridSize&&column<gridSize)
+    {
+      string textValue="["+text+"]";
+      grid[row][column]=textValue;
+    }
+  }
+
+	public:
+
+	string** make2DArray(const int gridSize)
+	{
+		string** array;
+    
+		array= new string*[gridSize];
+  
+		for(int index=0;index<this->gridSize;index++)
+		{
+			array[index]= new string[gridSize];
+      
+		}
+    return array;
+	}
+
+	string getValue(int x,int y)
+	{
+		return grid[x][y];
+	}
+
+  void loadGrid()
+  {
+    for(int i=0;i< this->gridSize;i++)
+    {
+      for(int j=0;j<this->gridSize;j++)
+      {    
+        grid[i][j]="[  ]";
+     
+      }
+      
+    }
+  }
+
+};
+
+class Player
+{
+  public: 
+
+    Vector<Ship*>* playerShipList = new Vector<Ship*>();
+    Grid* playerDisplayGrid= new Grid;
+  	Grid* playerGameGrid= new Grid;
+    Vector<Position*>* pastShots = new Vector<Position*>();
+    int numberOfShips;
+
+  Player()
+  {
+    addShips();
+    populateGrid();
+    this->numberOfShips=5;
+    
+  }
+
+  ~Player()
+  {
+    delete playerShipList;
+    delete playerGameGrid;
+    delete playerDisplayGrid;
+    delete pastShots;
+  }
+
+   void playerUnitTest()
+    {
+        Player player;
+
+        cout<<"Player Unit Test\n";
+        cout<<"Printing all the player's ships\n";
+        cout<<"Testing to see if the playerShipList vector contains all the ships that have been added to\n";
+        
+         for(int i=0;i<this->playerShipList->size();i++)
+        {
+          cout<<*this->playerShipList->get(i);
+        }
+        
+        cout<<*player.playerGameGrid<<'\n';
+
+       
+    }
+
+    private:
+
+     void addShips()
+    {
+      
+      // Make all the player's Ships
+      Ship* playerCarrier= new Carrier;
+      Ship* playerBattleship = new BattleShip;
+      Ship* playerCruiser = new Cruiser;
+      Ship* playerSubmarine = new Submarine;
+      Ship* playerDestroyer = new Destroyer;
+
+      // Add all the Player's Ships to the playerlist
+      playerShipList->add(playerCarrier);
+      playerShipList->add(playerBattleship);
+      playerShipList->add(playerCruiser);
+      playerShipList->add(playerSubmarine);
+      playerShipList->add(playerDestroyer);
+
+    }
+
+    int randomNumberGenerator(int lo,int hi)
+    {
+      
+      // Generates a ranodm number between lo and hi
+      srand(time(0));
+      int random = (rand()% (hi-lo+1))+lo;
+        
+      return random;
+     
+    }
+
+
+    // Specification B3 - Random Start
+    Vector<Position*>* addShipToGrid(int size)
+    {
+      
+      /*      
+        Find a random position in the grid
+        Select a random orientation horizonal or veritcal
+        directions from the cardinal direction array of Position struct
+        Check if the next position in that direction is within the bounds
+        Check if the next position has a boat
+        If out of bounds or boat start all over again
+      */
+      int xCoord= randomNumberGenerator(0,9);
+      int yCoord= randomNumberGenerator(0,9);
+
+
+      Vector<Position*>* array;
+      if(size>0)
+      {
+          array= new Vector<Position*>(size);
+      }
+     
+      
+      // Stores the number of orientations that have been tried and failed
+      
+      int i=0;
+
+      /**
+        Stores a Random orientation
+        1 is North
+        2 is Hoo
+        
+      */
+      int shipOrientation=randomNumberGenerator(1,2);
+
+      while(i<size)
+      {
+        if(positionIsInBounds(xCoord,yCoord)&&positionIsEmpty(xCoord,yCoord))
+        {
+			
+          if(shipOrientation==1)
+          {
+            // If Orientation is North
+            // If there is a match at the position store the position in the array
+            // The next position is 1 up so increase yCoord
+           
+            Position* position = new Position(xCoord,yCoord);
+            array->set(i,position);
+            yCoord++;
+			      i++;
+          }
+          else if(shipOrientation==2)
+          {
+            // If Orientation is South
+            // If there is a match at the position store the position in the array
+            // The next position is 1 down so decrease yCoord
+            Position* position = new Position(xCoord,yCoord);
+            array->set(i,position);
+            xCoord++;
+              i++;
+              
+          }
+
+        }
+        else
+        {
+          // If a position is not found find another coordinate
+          xCoord= randomNumberGenerator(0,size);
+          yCoord= randomNumberGenerator(0,size);
+          shipOrientation=randomNumberGenerator(1,2);
+          i=0;
+        }
+
+      }
+      
+      return array;
+
+    }
+
+    void populateGrid()
+    {
+      
+      // Add all ships to the grid
+      for(int i=0;i<this->playerShipList->size();i++)
+      {
+       
+        int index=0;
+
+        // get the size of the ship to add
+        int size=this->playerShipList->get(i)->shipSize;
+        
+        // get the positions to place the ship at
+        
+        this->playerShipList->get(i)->positions=addShipToGrid(size);
+
+        // Print the shipCode of the ship at its positions
+        string shipCode=this->playerShipList->get(i)->shipCode;
+                
+        int shipSize=this->playerShipList->get(i)->shipSize;
+        
+        // Add the ships position markers at all the ships positions
+        
+        while(index<shipSize)
+        {
+          // get the row of the ship
+                
+
+          // add the row and the col to the ship
+          string text=shipCode;
+          int row=this->playerShipList->get(i)->positions->get(index)->xCoord;
+          int column=this->playerShipList->get(i)->positions->get(index)->yCoord;
+          this->playerGameGrid->addToPosition(row,column,text);  
+          
+              
+          
+          index++;
+          
+        }
+      }
+       
+    }
+
+   
+
+    bool positionIsInBounds(int xCoord,int yCoord)
+    {
+      /*
+        Returns true if within the bounds of the grid
+        Position Can't be more than the size of the grid
+        Position can't be less than the size of the grid
+      */       
+      return (xCoord<10&&yCoord<10&&xCoord>=0&&yCoord>=0);
+    
+    }
+
+    bool positionIsEmpty(int xCoord,int yCoord)
+    {
+      // return true the grid is empty
+      return (playerGameGrid->grid[xCoord][yCoord]=="[  ]");
+    }
+
+
+};
+
+class BattleShipGameTemplate
+{
+
+    public:
+    Player* human = new Player;
+    Player* computer = new Player;
+    Player* humanReplay;
+    Player* computerReplay;
+  
+    void startGame()
+    {
+      bool gameEnded;
+      do
+      {
+        
+      system("clear");
+
+        // Player playerTurn
+        
+        cout<<"Your Ship Grid\n";
+        cout<<*this->human->playerGameGrid;
+        cout<<"Your Game Grid\n";
+        cout<<*this->human->playerDisplayGrid;
+
+  
+        string command;
+        
+        
+        cout<<"Press Enter to Proceed\n";
+        getline(cin,command);
+        system("clear");
+        
+        // Specification B1 - Secret Option
+        if(command=="nukecodes")
+        {
+          cout<<"It's ok to cheat if you don't get caught\n";
+          cout<<*this->computer->playerGameGrid;
+        }
+        else if(command=="abandonship")
+        {
+          // Specification A1 - Resign Game
+          gameEnded=true;
+          cout<<"Quitting Game\n";
+          break;
+        }
+         cout<<"Your Ship Grid\n";
+        cout<<*this->human->playerGameGrid;
+        cout<<"Your Game Grid\n";
+        cout<<*this->human->playerDisplayGrid;
+        playerTurn(*human);
+        computerTurn(*computer);
+        gameEnded= gameIsOver();
+
+      }
+      while(!gameEnded);
+    }
+
+    virtual void playerTurn(Player& human)=0;
+
+    virtual void computerTurn(Player& computer)=0;
+
+    int randomNumberGenerator(int lo,int hi)
+    {
+      // Generates a random number between lo and hi
+      srand(time(0));
+      int random = (rand()% (hi-lo+1))+lo;
+        
+      return random;
+     
+    }
+
+    bool gameIsOver()
+    {
+      // Check who lost the game
+      if(playerLost(*this->human))
+      {
+        cout<<"The Player Lost\n";
+        return true;
+      }
+      else if(playerLost(*this->computer))
+      {
+        cout<<"The Computer Lost\n";
+        return true;
+      }
+      return false;
+  
+    }
+
+    bool playerLost(Player& player)
+    {
+      for(int i=0;i<player.playerGameGrid->gridSize;i++)
+      {
+        for(int j=0; j<player.playerGameGrid->gridSize;j++)
+        {
+          if(player.playerGameGrid->grid[i][j]=="[C5]"||player.playerGameGrid->grid[i][j]=="[C3]"||player.playerGameGrid->grid[i][j]=="[D2]"||player.playerGameGrid->grid[i][j]=="[S3]"||player.playerGameGrid->grid[i][j]=="[B4]")
+          {
+            return false;
+          }
+        }
+      }
+      return true;
+    }
+
+     bool recordMove(Player& currentPlayer,Player& opposingPlayer,int xCoord,int yCoord)
+    {
+    
+        // Returns true if the move is recorded
+      
+      if(!checkIfShotPrevioslyFired(currentPlayer,xCoord,yCoord))
+      {
+       
+        Position* shot = new Position(xCoord,yCoord);
+        this->human->pastShots->add(shot);
+         // Mark the player's game grid as an already chosen shot
+        currentPlayer.playerDisplayGrid->addToPosition(shot->xCoord,shot->yCoord,"/*");
+
+        // Mark the oppposing player's display grid as a position shot at 
+        opposingPlayer.playerGameGrid->addToPosition(shot->xCoord,shot->yCoord,"/&");
+        positionIsHit(currentPlayer,opposingPlayer,shot);
+        
+        delete shot;
+        return true;
+      }
+      else
+      {
+      
+        return false;
+      }
+      
+      
+    }
+
+    // Specification B2 - Adv Input Validation
+    // Specification C2 - Prohibit AI wasted shots
+    bool checkIfShotPrevioslyFired(Player &player,int row, int col)
+    {
+      for(int i=0;i<player.pastShots->size();i++)
+      {
+        if(row==player.pastShots->get(i)->xCoord&&col==player.pastShots->get(i)->yCoord)
+        {
+         return true; 
+        }
+      }
+      return false;
+    }
+
+    void positionIsHit(Player& currentPlayer, Player& opposingPlayer,Position* shot)
+    {
+    
+      for(int i=0;i<opposingPlayer.playerShipList->size();i++)
+      {
+        // Check thorugh all the player's ships and see if that ship has the position
+        for(int j=0;j<opposingPlayer.playerShipList->get(i)->shipSize;j++)
+        {
+
+          if(shot->xCoord==opposingPlayer.playerShipList->get(i)->positions->get(j)->xCoord&&shot->yCoord==opposingPlayer.playerShipList->get(i)->positions->get(j)->yCoord)
+          {
+          
+            // Lower the health of the opposiong player's ship
+            opposingPlayer.playerShipList->get(i)->health--;
+            opposingPlayer.playerGameGrid->addToPosition(shot->xCoord,shot->yCoord,"**");
+            currentPlayer.playerDisplayGrid->addToPosition(shot->xCoord,shot->yCoord,"**");
+           
+             
+            break;
+          }
+        }
+      }
+      
+    }
+
+    virtual void displayReplay()=0;
+
+};
+
+class BattleShipGameManager : public BattleShipGameTemplate
+{
+
+	public:
+    BattleShipGameManager()
+    {
+      this->humanReplay=human;
+      this->computerReplay=computer;
+      cout<<"Loading Game\n";
+      startGame();
+    }
+
+    void playerTurn(Player& player)
+    {
+      bool turnRecorded;
+      do
+      {
+
+        char column;
+        int row;
+
+        // Player playerTurn
+        cout<<"Enter a column(A-J)\n";
+        
+        cin>>column;
+        if(!cin.fail())
+        {
+
+          cout<<"Enter a row(0-9)\n";
+          cin>>row;
+          
+
+          if(!cin.fail())
+          {
+                    
+            int xCoord=((int)tolower(column))-97;
+            
+            // Specification C3 - Validate Input
+            if((xCoord<10&&xCoord>=0)&&(row>=0&&row<10))
+            {
+              turnRecorded =recordMove(*this->human,*this->computer,row,xCoord);
+            }
+      
+          }
+          else
+          {
+            cout<<"Invalid Input\n";
+            cin.clear();
+					  cin.ignore(numeric_limits<streamsize>::max(), '\n');
+          }
+  
+        }
+        else
+        {
+           cout<<"Invalid Input\n";
+          cin.clear();
+					cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        }
+      }
+      while(!turnRecorded);
+      
+      
+      cin.ignore(numeric_limits<streamsize>::max(), '\n');
+      
+    }
+
+   
+
+    void computerTurn(Player& player)
+    {
+      system("clear");
+      
+      bool turnRecorded;
+      
+      // Computer's turn
+      do
+      {
+
+        // get Random coordinates for the computer
+       
+        int col= randomNumberGenerator(0, 9);
+        int row=randomNumberGenerator(0, 9);
+
+        if(!cin.fail())
+        {
+          if(!cin.fail())
+          {
+            // Record the computer's move if the inut is of type int
+             // "Prompt" the computer for its turn until a previous position is not chosen"
+            turnRecorded =recordMove(*this->computer,*this->human,col,row);
+      
+          }
+        }
+
+      }
+      while(!turnRecorded);
+     
+    } 
+
+    
+    
+    void BattleShipGameManagerUnitTest()
+    {
+      BattleShipGameManager game;
+
+    }
+    
+    ~BattleShipGameManager()
+    {
+      delete human;
+      delete computer;
+    }
+
+    // Specification A4 - Replay Finished Game
+    void displayReplay()
+    {
+    
+    
+     int gameTurns= max(this->human->pastShots->size(),this->computer->pastShots->size()); // The number of times the replay is run depends on the person who made more turns("The Winner")
+      for(int i=0;i<gameTurns;i++)
+      {
+        if(gameTurns<this->human->pastShots->size())
+        {
+          // Player's turn 
+          
+          // Add the shot to the player's game grid 
+          this->humanReplay->playerDisplayGrid->addToPosition(this->human->pastShots->get(i)->xCoord,this->human->pastShots->get(i)->yCoord,"*/");
+
+          // Add the player's shot to the computer's grid
+          this->computerReplay->playerGameGrid->addToPosition(this->human->pastShots->get(i)->xCoord,this->human->pastShots->get(i)->yCoord,"*/");
+
+           cout<<*this->computerReplay->playerGameGrid;
+        }
+         if(gameTurns<this->computer->pastShots->size())
+        {
+          // Computer's turn
+
+          // Add the computer's shot to its game grid          
+          this->computerReplay->playerDisplayGrid->addToPosition(this->human->pastShots->get(i)->xCoord,this->human->pastShots->get(i)->yCoord,"*/");
+
+          // Add the computer's shot to the player's game grid
+          this->humanReplay->playerGameGrid->addToPosition(this->human->pastShots->get(i)->xCoord,this->human->pastShots->get(i)->yCoord,"*/");
+
+
+          cout<<*this->humanReplay->playerGameGrid;
+        }
+      }
+    }
+};
+
+class MultiFireBattleShip :public BattleShipGameManager
+{
+  // Stores the number of shots each "player" makes per turn
+  Vector<int> numberOfShotsMadeByPlayerPerTurn; 
+  Vector<int> numberOfShotsMadeByComputerPerTurn;
+
+  int playerNumberOfTurns;
+  int computerNumberOfTurns;
+
+  public:
+  MultiFireBattleShip()
+  {
+    // Both the player and the computer start out with 5 turns
+    this->playerNumberOfTurns=5;
+    this->computerNumberOfTurns=5;
+
+    this->humanReplay=human;
+    this->computerReplay=computer;
+
+    cout<<"Loading Game\n";
+    startGame();
+  }
+
+
+  void playerTurn(Player& player)
+    {
+     
+
+      // Ask the player for the number of turns based on the number of ships they have
+
+      // Stores the number of turns the player will be able to make based on the number of ships that they have
+      this->numberOfShotsMadeByPlayerPerTurn=player.numberOfShips;
+
+      // Stores the number of turns that the player made during this turn(used for game replay)
+      this->numberOfShotsMadeByPlayerPerTurn.add(player.numberOfShips);
+
+      for(int i=0;i<this->playerNumberOfTurns;i++)
+      {
+        playerInput(player);
+      }
+      
+      cin.ignore(numeric_limits<streamsize>::max(), '\n');
+      
+    }
+
+    void playerInput(Player& player)
+    {
+      bool turnRecorded=false;
+
+      // Ask the player for the number of turns based on the number of ships they have
+
+      // Stores the number of turns the player will be able to make based on the number of ships that they have
+      this->numberOfShotsMadeByPlayerPerTurn=player.numberOfShips;
+
+      // Stores the number of turns that the player made during this turn(used for game replay)
+      this->numberOfShotsMadeByPlayerPerTurn.add(player.numberOfShips);
+
+      
+      do
+      {
+
+        char column;
+        int row;
+
+        // Player playerTurn
+        cout<<"Enter a column(A-J)\n";
+        
+        cin>>column;
+        if(!cin.fail())
+        {
+
+          cout<<"Enter a row(0-9)\n";
+          cin>>row;
+          
+
+          if(!cin.fail())
+          {
+                    
+            int xCoord=((int)tolower(column))-97;
+            
+            // Specification C3 - Validate Input
+            if((xCoord<10&&xCoord>=0)&&(row>=0&&row<10))
+            {
+              turnRecorded =recordMove(*this->human,*this->computer,row,xCoord);
+            }
+      
+          }
+          else
+          {
+            cout<<"Invalid Input\n";
+            cin.clear();
+					  cin.ignore(numeric_limits<streamsize>::max(), '\n');
+          }
+  
+        }
+        else
+        {
+           cout<<"Invalid Input\n";
+          cin.clear();
+					cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        }
+      }
+      while(turnRecorded==false);
+      
+      
+      cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    }
+
+    bool playerLost(Player& player)
+    {
+      storeNumberOfShips(player);
+      int index;
+      while(index<player.playerShipList->size())
+     {
+       if(player.playerShipList->get(index)->health!=0)
+       {
+         player.numberOfShips=index;
+         return true;
+       }
+       else
+       {
+         
+       }
+     }
+
+     player.numberOfShips=index;
+
+     return false;
+    }
+
+    void storeNumberOfShips(Player& player)
+    {
+      
+      for(int i=0;i<player.playerGameGrid->gridSize;i++)
+      {
+        for(int j=0; j<player.playerGameGrid->gridSize;j++)
+        {
+          if(player.playerGameGrid->grid[i][j]=="[C5]")
+          {
+            player.playerShipList->get(0)->health++;
+          }
+          else if(player.playerGameGrid->grid[i][j]=="[B4]")
+          {
+            player.playerShipList->get(1)->health++;
+          }
+          else if(player.playerGameGrid->grid[i][j]=="[C3]")
+          {
+            player.playerShipList->get(2)->health++;
+          }
+          else if(player.playerGameGrid->grid[i][j]=="[S3]")
+          {
+            player.playerShipList->get(3)->health++;
+          }
+          else if(player.playerGameGrid->grid[i][j]=="[D2]")
+          {
+            player.playerShipList->get(4)->health++;
+          }         
+        }
+      }
+
+      
+      
+    }
+
+
+    void computerTurn(Player& player)
+    {
+      // Store the number of turns that the computer can make
+      this->numberOfShotsMadeByComputerPerTurn=this->computer->numberOfShips;
+
+      // Store the number of turns the computer will make during this turn (used for replay)
+      this->numberOfShotsMadeByComputerPerTurn.add(player.numberOfShips);
+      system("clear");
+      
+      for(int i=0;this->computerNumberOfTurns;i++)
+      {
+        computerInput(player);
+      }
+     
+    } 
+
+    void computerInput(Player& player)
+    {
+
+      bool turnRecorded;
+       do
+      {
+
+        // get Random coordinates for the computer
+       
+        int col= randomNumberGenerator(0, 9);
+        int row=randomNumberGenerator(0, 9);
+
+        if(!cin.fail())
+        {
+          if(!cin.fail())
+          {
+            // Record the computer's move if the inut is of type int
+             // "Prompt" the computer for its turn until a previous position is not chosen"
+            turnRecorded =recordMove(*this->computer,*this->human,col,row);
+      
+          }
+        }
+
+      }
+      while(!turnRecorded);
+    }
+
+    void displayReplay()
+    {
+     int gameTurns= max(this->human->pastShots->size(),this->computer->pastShots->size()); // The number of times the replay is run depends on the person who made more turns("The Winner")
+      for(int i=0;i<gameTurns;i++)
+      {
+        if(gameTurns<this->human->pastShots->size())
+        {
+          // Player's turn 
+          
+          // Add the shot to the player's game grid 1
+          this->humanReplay->playerDisplayGrid->addToPosition(this->human->pastShots->get(i)->xCoord,this->human->pastShots->get(i)->yCoord,"*/");
+
+          // Add the player's shot to the computer's grid
+          this->computerReplay->playerGameGrid->addToPosition(this->human->pastShots->get(i)->xCoord,this->human->pastShots->get(i)->yCoord,"*/");
+
+           cout<<*this->computerReplay->playerGameGrid;
+        }
+         if(gameTurns<this->computer->pastShots->size())
+        {
+          // Computer's turn
+
+          // Add the computer's shot to its game grid          
+          this->computerReplay->playerDisplayGrid->addToPosition(this->human->pastShots->get(i)->xCoord,this->human->pastShots->get(i)->yCoord,"*/");
+
+          // Add the computer's shot to the player's game grid
+          this->humanReplay->playerGameGrid->addToPosition(this->human->pastShots->get(i)->xCoord,this->human->pastShots->get(i)->yCoord,"*/");
+
+
+          cout<<*this->humanReplay->playerGameGrid;
+        }
+      }
+    }
+
+};
+
+// Function Protypes
+ void UnitTest();
+ void ProgramGreeting();
+void pressEnterKey();
+
+int main() {
+
+	//UnitTest();
+	ProgramGreeting();
+	cout<<"Select a Game Type\n";
+  //UnitTest();
+  
+  int gameType;
+  cout<<"Select 0 for normal Battle Ship\n";
+  cout<<"Select 1 for Multi Fire Battle Ship\n";
+  cin>>gameType;
+  BattleShipGameManager* battleship;
+  if(!cin.fail())
+  {
+    if(gameType==0)
+    {
+      battleship= new BattleShipGameManager();
+    }
+    else if(gameType==1)
+    {
+      battleship= new MultiFireBattleShip();
+    }
+  }
+  else
+  {
+    cin.clear();
+		cin.ignore(numeric_limits<streamsize>::max(), '\n');
+  }
+
+  cout<<"Replay Game\n";
+  cout<<"Select 1 to replay\n";
+  cout<<"Select 2 to quit\n";
+  cin>>gameType;
+  if(!cin.fail())
+  {
+    if(gameType==1)
+    {
+      battleship->displayReplay();
+    }
+  }
+  else
+  {
+    cin.clear();
+		cin.ignore(numeric_limits<streamsize>::max(), '\n');
+  }
+  
+  delete battleship;
+} 
+
+void UnitTest()
+{
+  cout<<"Starting Unit Tests\n";
+
+  /*    
+  Date dateUnitTest;
+  dateUnitTest.dateUnitTest();
+
+  pressEnterKey();
+  system("clear");
+
+  Vector<int> vectorUnitTest;
+  vectorUnitTest.VectorUnitTest();
+
+  pressEnterKey();
+  system("clear");
+
+	Position positionUnitTest;
+	positionUnitTest.PositionsUnitTest();
+
+  pressEnterKey();
+  system("clear");
+
+	Ship shipUnitTest;
+	shipUnitTest.shipUnitTest();
+
+  pressEnterKey();
+  system("clear");
+
+	Carrier carrierShipUnitTest;
+  carrierShipUnitTest.carrierShipUnitTest();
+  pressEnterKey();
+  system("clear");
+
+	
+  BattleShip battleShipUnitTest;
+  battleShipUnitTest.battleShipUnitTest();
+
+  pressEnterKey();
+  system("clear");
+
+  Cruiser cruiserUnitTest;
+  cruiserUnitTest.cruiserShipUnitTest();
+
+  pressEnterKey();
+  system("clear");
+
+  Submarine submarineUnitTest;
+  submarineUnitTest.submarineUnitTest();
+
+  pressEnterKey();
+  system("clear");
+
+  Destroyer destroyerUnitTest;
+  destroyerUnitTest.destroyerUnitTest();
+
+  pressEnterKey();
+  system("clear");
+
+  Grid gridUnitTest;
+  gridUnitTest.gridUnitTest();
+
+pressEnterKey();
+  system("clear");
+  
+  Player playerUnitTest;
+  playerUnitTest.playerUnitTest();
+
+  pressEnterKey();
+  system("clear");
+  
+*/
+  BattleShipGameManager gameUnitTest;
+  
+  gameUnitTest.BattleShipGameManagerUnitTest();
+
+  pressEnterKey();
+  system("clear");
+}
+
+void ProgramGreeting()
+{	
+	 Date currentDate;
+	
+    cout<<"==========================================\n";
+    cout<<"Welcome to the Game Battle Ship\n";
+    cout<<"Today's Date: "<<currentDate;
+    cout<<"Program Author: Ishan Meher\n";
+		cout<<"Project for my CISP 400 Class\n";
+    cout<<"Program Due Date: November 22, 2020\n";
+	  cout<<"==========================================\n";
+}
+
+void pressEnterKey()
+{
+	// Clears the console and asks the user to press the enter key to contine
+	 int enter=0;
+        
+        cout << "Press Enter key to Continue\n";
+        while (enter==cin.get() )      {
+                if ( enter == (int)'\n' ) 
+                {
+                    
+                    break;
+                }
+                else 
+                {
+                    cout << "Failure, Program Quitting\n";
+                    exit(EXIT_FAILURE);
+                }
+        }
+
+}
